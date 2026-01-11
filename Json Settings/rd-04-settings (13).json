@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "RD": {
+    "f": 0.0545,
+    "k": 0.0745,
+    "dA": 0.2097,
+    "dB": 0.105,
+    "timestep": 0.8,
+    "brushRadius": 345,
+    "stepsPerFrame": 11,
+    "renderingStyle": 7,
+    "warmStartIterations": 340,
+    "simScale": 1,
+    "biasX": 0.323,
+    "biasY": 0.272,
+    "sourceStrength": 0.005
+  },
+  "COLORS": {
+    "color1": "#000000",
+    "stop1": 0,
+    "color2": "#000000",
+    "stop2": 0.2,
+    "color3": "#ffffff",
+    "stop3": 0.4,
+    "color4": "#000000",
+    "stop4": 0.6,
+    "color5": "#000000",
+    "stop5": 0.8,
+    "hslFromMin": 0,
+    "hslFromMax": 1,
+    "hslToMin": 0,
+    "hslToMax": 1,
+    "hslSaturation": 1,
+    "hslLuminosity": 0.5
+  },
+  "TITLE": {
+    "text": "ANACYCLE",
+    "enabled": true,
+    "sizePercent": 28,
+    "fillColor": "#ffffff",
+    "strokeColor": "#000000",
+    "strokeWidth": 4.5,
+    "shadowEnabled": false,
+    "shadowColor": "#000000",
+    "shadowBlur": 12,
+    "shadowOffsetX": 0,
+    "shadowOffsetY": 0
+  }
+}

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Metaballs - Scalar Field</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Canvas for rendering metaballs -->
+    <canvas id="canvas"></canvas>
+
+    <!-- Effect Tabs (top-left) -->
+    <div class="effects-tabs">
+        <div class="effects-header">
+            <span class="effects-title">EFFECTS</span>
+        </div>
+        <div class="effects-content">
+            <a class="effects-link active" href="../image-metaballs/">1. Metaball</a>
+            <a class="effects-link" href="../rd-01/">2. RD-01</a>
+            <a class="effects-link" href="../rd-02/">3. RD-02</a>
+            <a class="effects-link" href="../rd-04/">4. RD-04</a>
+            <a class="effects-link" href="../rd-05/">5. RD-05</a>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+        <button id="prevBtn">← Previous</button>
+        <span id="imageName"></span>
+        <button id="nextBtn">Next →</button>
+    </div>
+
+    <!-- Parameter Controls (two sibling panels) -->
+    <div class="panel-stack">
+        <!-- EFFECT CONTROLS -->
+        <div class="slider-controls">
+            <div class="controls-header">
+                <span class="controls-title">EFFECT CONTROLS</span>
+                <button id="toggleControls" class="toggle-btn">−</button>
+            </div>
+
+            <div id="controlsContent" class="controls-content">
+                <!-- Detail & Rendering -->
+                <div class="control-section">
+                <div class="section-title">Detail & Rendering</div>
+
+                <div class="slider-group">
+                    <label for="gridResolutionSlider" class="slider-label">Grid Size</label>
+                    <input type="range" id="gridResolutionSlider" class="slider" min="0.5" max="10" value="2" step="0.1">
+                    <span id="gridResolutionValue" class="slider-value">2</span>
+                </div>
+
+                <div class="slider-group">
+                    <label for="influenceRadiusSlider" class="slider-label">Influence</label>
+                    <input type="range" id="influenceRadiusSlider" class="slider" min="5" max="50" value="5" step="1">
+                    <span id="influenceRadiusValue" class="slider-value">5</span>
+                </div>
+
+                <div class="slider-group">
+                    <label for="falloffPowerSlider" class="slider-label">Falloff</label>
+                    <input type="range" id="falloffPowerSlider" class="slider" min="1" max="6" value="3.5" step="0.1">
+                    <span id="falloffPowerValue" class="slider-value">3.5</span>
+                </div>
+
+                <div class="slider-group">
+                    <label for="lineWidthSlider" class="slider-label">Line Width</label>
+                    <input type="range" id="lineWidthSlider" class="slider" min="0.5" max="4" value="1.5" step="0.1">
+                    <span id="lineWidthValue" class="slider-value">1.5</span>
+                </div>
+            </div>
+
+            <!-- Animation Speed -->
+            <div class="control-section">
+                <div class="section-title">Animation Speed</div>
+
+                <div class="slider-group">
+                    <label for="thresholdSpeedSlider" class="slider-label">Base Speed</label>
+                    <input type="range" id="thresholdSpeedSlider" class="slider" min="0.0001" max="0.01" value="0.01" step="0.0001">
+                    <span id="thresholdSpeedValue" class="slider-value">0.01</span>
+                </div>
+
+                <div class="slider-group">
+                    <label for="noiseSpeedSlider" class="slider-label">Noise Speed</label>
+                    <input type="range" id="noiseSpeedSlider" class="slider" min="0.00005" max="0.005" value="0.005" step="0.00005">
+                    <span id="noiseSpeedValue" class="slider-value">0.005</span>
+                </div>
+            </div>
+
+            <!-- Threshold Range -->
+            <div class="control-section">
+                <div class="section-title">Threshold Range</div>
+
+                <div class="slider-group">
+                    <label for="thresholdMinSlider" class="slider-label">Min</label>
+                    <input type="range" id="thresholdMinSlider" class="slider" min="0" max="0.5" value="0.2" step="0.01">
+                    <span id="thresholdMinValue" class="slider-value">0.2</span>
+                </div>
+
+                <div class="slider-group">
+                    <label for="thresholdMaxSlider" class="slider-label">Max</label>
+                    <input type="range" id="thresholdMaxSlider" class="slider" min="0.5" max="1" value="0.8" step="0.01">
+                    <span id="thresholdMaxValue" class="slider-value">0.8</span>
+                </div>
+            </div>
+
+            <!-- Noise Settings -->
+            <div class="control-section">
+                <div class="section-title">Noise Settings</div>
+
+                <div class="slider-group">
+                    <label for="noiseScaleSlider" class="slider-label">Scale</label>
+                    <input type="range" id="noiseScaleSlider" class="slider" min="0.0005" max="0.01" value="0.003" step="0.0001">
+                    <span id="noiseScaleValue" class="slider-value">0.003</span>
+                </div>
+
+                <div class="slider-group">
+                    <label for="noiseStrengthSlider" class="slider-label">Strength</label>
+                    <input type="range" id="noiseStrengthSlider" class="slider" min="0" max="1" value="0.5" step="0.01">
+                    <span id="noiseStrengthValue" class="slider-value">0.5</span>
+                </div>
+            </div>
+
+            <!-- Mouse Interaction -->
+            <div class="control-section">
+                <div class="section-title">Mouse Interaction</div>
+
+                <div class="slider-group">
+                    <label for="mouseRadiusSlider" class="slider-label">Radius</label>
+                    <input type="range" id="mouseRadiusSlider" class="slider" min="50" max="300" value="115" step="5">
+                    <span id="mouseRadiusValue" class="slider-value">115</span>
+                </div>
+
+                <div class="slider-group">
+                    <label for="mouseStrengthSlider" class="slider-label">Strength</label>
+                    <input type="range" id="mouseStrengthSlider" class="slider" min="0" max="2" value="0.5" step="0.05">
+                    <span id="mouseStrengthValue" class="slider-value">0.5</span>
+                </div>
+            </div>
+
+            <!-- Other Settings -->
+            <div class="control-section">
+                <div class="section-title">Other</div>
+
+                <div class="slider-group">
+                    <label for="transitionDurationSlider" class="slider-label">Transition</label>
+                    <input type="range" id="transitionDurationSlider" class="slider" min="200" max="3000" value="1500" step="100">
+                    <span id="transitionDurationValue" class="slider-value">1500</span>
+                </div>
+            </div>
+
+            </div>
+        </div>
+
+        <!-- TITLE CONTROL -->
+        <div class="slider-controls">
+            <div class="controls-header">
+                <span class="controls-title">TITLE CONTROL</span>
+                <button id="toggleTitleControls" class="toggle-btn">−</button>
+            </div>
+
+            <div id="titleControlsContent" class="controls-content">
+                <div class="control-section">
+                    <div class="section-title">Text</div>
+
+                    <div class="slider-group">
+                        <label for="titleTextInput" class="slider-label">Text</label>
+                        <input type="text" id="titleTextInput" class="text-input" value="ANACYCLE" autocomplete="off" spellcheck="false">
+                    </div>
+
+                    <div class="toggle-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="titleShowToggle" checked>
+                            Show
+                        </label>
+                    </div>
+
+                    <div class="slider-group">
+                        <label for="titleSizeSlider" class="slider-label">Size %</label>
+                        <input type="range" id="titleSizeSlider" class="slider" min="1" max="50" value="15" step="0.5">
+                        <span id="titleSizeValue" class="slider-value">15</span>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <div class="section-title">Style</div>
+
+                    <div class="slider-group">
+                        <label for="titleFillColor" class="slider-label">Color</label>
+                        <input type="color" id="titleFillColor" class="color-input" value="#ffffff">
+                    </div>
+
+                    <div class="slider-group">
+                        <label for="titleStrokeColor" class="slider-label">Stroke</label>
+                        <input type="color" id="titleStrokeColor" class="color-input" value="#000000">
+                    </div>
+
+                    <div class="slider-group">
+                        <label for="titleStrokeWidthSlider" class="slider-label">Stroke W</label>
+                        <input type="range" id="titleStrokeWidthSlider" class="slider" min="0" max="20" value="2" step="0.5">
+                        <span id="titleStrokeWidthValue" class="slider-value">2</span>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <div class="section-title">Shadow</div>
+
+                    <div class="toggle-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="titleShadowToggle">
+                            Drop Shadow
+                        </label>
+                    </div>
+
+                    <div class="slider-group">
+                        <label for="titleShadowColor" class="slider-label">Color</label>
+                        <input type="color" id="titleShadowColor" class="color-input" value="#000000">
+                    </div>
+
+                    <div class="slider-group">
+                        <label for="titleShadowBlurSlider" class="slider-label">Blur</label>
+                        <input type="range" id="titleShadowBlurSlider" class="slider" min="0" max="50" value="12" step="1">
+                        <span id="titleShadowBlurValue" class="slider-value">12</span>
+                    </div>
+
+                    <div class="slider-group">
+                        <label for="titleShadowOffsetXSlider" class="slider-label">Offset X</label>
+                        <input type="range" id="titleShadowOffsetXSlider" class="slider" min="-50" max="50" value="0" step="1">
+                        <span id="titleShadowOffsetXValue" class="slider-value">0</span>
+                    </div>
+
+                    <div class="slider-group">
+                        <label for="titleShadowOffsetYSlider" class="slider-label">Offset Y</label>
+                        <input type="range" id="titleShadowOffsetYSlider" class="slider" min="-50" max="50" value="0" step="1">
+                        <span id="titleShadowOffsetYValue" class="slider-value">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden images for processing (populated via JS) -->
+    <div class="hidden-images" id="hiddenImages"></div>
+
+    <script src="main.js"></script>
+</body>
+</html>
