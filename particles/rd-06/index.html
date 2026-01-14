@@ -122,7 +122,7 @@
 
                     <div class="slider-group">
                         <label class="slider-label">Name</label>
-                        <span id="rdStyleName" class="slider-value" style="min-width: auto; text-align: left;">Black &amp; White Sharp</span>
+                        <span id="rdStyleName" class="slider-value" style="min-width: auto; text-align: left;">Duo Tone Sharp</span>
                     </div>
 
                     <!-- Threshold controls (only visible for B/W Sharp) -->
@@ -131,6 +131,18 @@
                             <label for="rdThresholdSlider" class="slider-label">Threshold</label>
                             <input type="range" id="rdThresholdSlider" class="slider" min="0" max="1" value="0.07" step="0.01">
                             <span id="rdThresholdValue" class="slider-value">0.07</span>
+                        </div>
+
+                        <div class="slider-group">
+                            <label class="slider-label">Black</label>
+                            <input type="color" id="rdDuoToneBlack" class="color-input" value="#000000">
+                            <span id="rdDuoToneBlackValue" class="slider-value">#000000</span>
+                        </div>
+
+                        <div class="slider-group">
+                            <label class="slider-label">White</label>
+                            <input type="color" id="rdDuoToneWhite" class="color-input" value="#ffffff">
+                            <span id="rdDuoToneWhiteValue" class="slider-value">#ffffff</span>
                         </div>
                     </div>
                 </div>

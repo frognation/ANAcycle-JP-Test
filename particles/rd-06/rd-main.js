@@ -84,6 +84,10 @@ const COLORS = {
   color4: '#000000', stop4: 0.6,
   color5: '#000000', stop5: 0.8,
 
+  // Duo tone (style 7)
+  duoToneBlack: '#000000',
+  duoToneWhite: '#ffffff',
+
   // HSL mapping (style 0)
   hslFromMin: 0.0,
   hslFromMax: 1.0,
@@ -225,6 +229,8 @@ uniform float time;
 
 uniform int renderingStyle;
 uniform float bwThreshold;
+uniform vec3 duoToneBlack;
+uniform vec3 duoToneWhite;
 
 // Brush transparency mask (for display only)
 uniform vec2 mousePosition;
@@ -344,11 +350,10 @@ void main() {
   } else if(renderingStyle == 7) {
     float grayValue = pixel.r - pixel.g;
     if(grayValue > bwThreshold) {
-      outputColor = vec4(1.0, 1.0, 1.0, 1.0);
+      outputColor = vec4(duoToneBlack, 1.0);
     } else {
-      outputColor = vec4(0.0, 0.0, 0.0, 1.0);
+      outputColor = vec4(duoToneWhite, 1.0);
     }
-    outputColor.rgb = vec3(1.0) - outputColor.rgb;
 
   } else if(renderingStyle == 8) {
     outputColor = pixel;
@@ -432,6 +437,8 @@ const uniforms = {
     time: { value: 0 },
     renderingStyle: { value: RD.renderingStyle },
     bwThreshold: { value: 0.07 },
+    duoToneBlack: { value: new THREE.Color(COLORS.duoToneBlack) },
+    duoToneWhite: { value: new THREE.Color(COLORS.duoToneWhite) },
     mousePosition: { value: new THREE.Vector2(-1, -1) },
     brushRadius: { value: RD.brushRadius },
     resolution: { value: new THREE.Vector2(900, 900) },
@@ -1120,7 +1127,7 @@ function setupEffectsPanel() {
     4: 'Radioactive',
     5: 'Rainbow',
     6: 'Black & White Soft',
-    7: 'Black & White Sharp',
+    7: 'Duo Tone Sharp',
     8: 'Red/Green Raw',
   };
 
@@ -1226,6 +1233,36 @@ function setupEffectsPanel() {
     uniforms.display.bwThreshold.value = Math.max(0.0, Math.min(1.0, v));
   });
 
+  // Duo tone colors (style 7)
+  const duoToneBlackInput = document.getElementById('rdDuoToneBlack');
+  const duoToneWhiteInput = document.getElementById('rdDuoToneWhite');
+  const duoToneBlackValue = document.getElementById('rdDuoToneBlackValue');
+  const duoToneWhiteValue = document.getElementById('rdDuoToneWhiteValue');
+
+  function setDuoToneColor(which, hex) {
+    if (which === 'black') {
+      COLORS.duoToneBlack = hex;
+      if (uniforms.display.duoToneBlack?.value) uniforms.display.duoToneBlack.value.set(hex);
+      if (duoToneBlackValue) duoToneBlackValue.textContent = hex;
+    }
+    if (which === 'white') {
+      COLORS.duoToneWhite = hex;
+      if (uniforms.display.duoToneWhite?.value) uniforms.display.duoToneWhite.value.set(hex);
+      if (duoToneWhiteValue) duoToneWhiteValue.textContent = hex;
+    }
+  }
+
+  if (duoToneBlackInput) {
+    duoToneBlackInput.value = COLORS.duoToneBlack;
+    setDuoToneColor('black', duoToneBlackInput.value);
+    duoToneBlackInput.addEventListener('input', () => setDuoToneColor('black', duoToneBlackInput.value));
+  }
+  if (duoToneWhiteInput) {
+    duoToneWhiteInput.value = COLORS.duoToneWhite;
+    setDuoToneColor('white', duoToneWhiteInput.value);
+    duoToneWhiteInput.addEventListener('input', () => setDuoToneColor('white', duoToneWhiteInput.value));
+  }
+
   const reseedBtn = document.getElementById('rdReseedBtn');
   if (reseedBtn) {
     reseedBtn.addEventListener('click', () => {
@@ -1262,6 +1299,9 @@ function setupEffectsPanel() {
     uniforms.display.hslTo.value.set(COLORS.hslToMin, COLORS.hslToMax);
     uniforms.display.hslSaturation.value = COLORS.hslSaturation;
     uniforms.display.hslLuminosity.value = COLORS.hslLuminosity;
+
+    if (uniforms.display.duoToneBlack?.value) uniforms.display.duoToneBlack.value.set(COLORS.duoToneBlack);
+    if (uniforms.display.duoToneWhite?.value) uniforms.display.duoToneWhite.value.set(COLORS.duoToneWhite);
   };
 
   const applySettings = async (settings) => {
@@ -1307,6 +1347,12 @@ function setupEffectsPanel() {
     setSlider('rdWarmStartSlider', 'rdWarmStartValue', RD.warmStartIterations, 0);
     setSliderWithNumber('rdSourceStrengthSlider', 'rdSourceStrengthNumber', 'rdSourceStrengthValue', RD.sourceStrength, 3);
     setSlider('rdSimScaleSlider', 'rdSimScaleValue', RD.simScale, 2);
+
+    // Duo tone UI sync (style 7)
+    if (duoToneBlackInput) duoToneBlackInput.value = COLORS.duoToneBlack;
+    if (duoToneWhiteInput) duoToneWhiteInput.value = COLORS.duoToneWhite;
+    if (duoToneBlackValue) duoToneBlackValue.textContent = COLORS.duoToneBlack;
+    if (duoToneWhiteValue) duoToneWhiteValue.textContent = COLORS.duoToneWhite;
 
     // Colors UI sync omitted for brevity
 
