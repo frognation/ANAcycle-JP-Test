@@ -1,0 +1,10 @@
+# Exclude large or unnecessary files from Vercel deployments
+# Git metadata
+.git/
+
+# Large video files in settings
+Json Settings/*.mov
+Json Settings/**/*.mov
+
+# macOS system files
+.DS_Store

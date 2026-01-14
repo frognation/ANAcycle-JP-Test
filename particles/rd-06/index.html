@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RD-02 - Reaction Diffusion</title>
+    <title>RD-06 - Reaction Diffusion</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Background layer (grayscale) -->
-    <div id="bgLayer" aria-hidden="true"></div>
+    <!-- UI Toggle Button (top-left, persistent) -->
+    <div class="ui-toggle" style="position:fixed;top:10px;left:10px;z-index:9999;">
+        <button id="uiToggleBtn" title="Hide/Show UI" style="font-family: 'Courier New', Courier, monospace; font-size:12px; color:#fff; background-color: rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25); padding:6px 10px; border-radius:6px; cursor:pointer;">UI</button>
+    </div>
 
     <!-- Canvas for rendering effect -->
     <canvas id="canvas"></canvas>
@@ -21,10 +23,10 @@
         <div class="effects-content">
             <a class="effects-link" href="../image-metaballs/">1. Metaball</a>
             <a class="effects-link" href="../rd-01/">2. RD-01</a>
-            <a class="effects-link active" href="../rd-02/">3. RD-02</a>
+            <a class="effects-link" href="../rd-02/">3. RD-02</a>
             <a class="effects-link" href="../rd-04/">4. RD-04</a>
             <a class="effects-link" href="../rd-05/">5. RD-05</a>
-            <a class="effects-link" href="../rd-06/">6. RD-06</a>
+            <a class="effects-link active" href="../rd-06/">6. RD-06</a>
         </div>
     </div>
 
@@ -58,20 +60,20 @@
 
                     <div class="slider-group">
                         <label for="rdFSlider" class="slider-label">F</label>
-                        <input type="range" id="rdFSlider" class="slider" min="0.0" max="0.12" value="0.054" step="0.0005">
-                        <span id="rdFValue" class="slider-value">0.0540</span>
+                        <input type="range" id="rdFSlider" class="slider" min="0.0" max="0.12" value="0.033" step="0.0005">
+                        <span id="rdFValue" class="slider-value">0.0330</span>
                     </div>
 
                     <div class="slider-group">
                         <label for="rdKSlider" class="slider-label">K</label>
-                        <input type="range" id="rdKSlider" class="slider" min="0.0" max="0.12" value="0.062" step="0.0005">
-                        <span id="rdKValue" class="slider-value">0.0620</span>
+                        <input type="range" id="rdKSlider" class="slider" min="0.0" max="0.12" value="0.0655" step="0.0005">
+                        <span id="rdKValue" class="slider-value">0.0655</span>
                     </div>
 
                     <div class="slider-group">
                         <label for="rdDASlider" class="slider-label">dA</label>
-                        <input type="range" id="rdDASlider" class="slider" min="0.0" max="0.5" value="0.2097" step="0.0005">
-                        <span id="rdDAValue" class="slider-value">0.2097</span>
+                        <input type="range" id="rdDASlider" class="slider" min="0.0" max="0.5" value="0.2095" step="0.0005">
+                        <span id="rdDAValue" class="slider-value">0.2095</span>
                     </div>
 
                     <div class="slider-group">
@@ -91,13 +93,6 @@
                         <input type="range" id="rdStepsSlider" class="slider" min="1" max="120" value="60" step="1">
                         <span id="rdStepsValue" class="slider-value">60</span>
                     </div>
-
-                    <div class="slider-group">
-                        <label for="rdSourceStrengthSlider" class="slider-label">Source strength</label>
-                        <input type="range" id="rdSourceStrengthSlider" class="slider" min="0" max="0.5" value="0.005" step="0.001">
-                        <input type="number" id="rdSourceStrengthNumber" class="number-input" min="0" max="0.5" value="0.005" step="0.001">
-                        <span id="rdSourceStrengthValue" class="slider-value">0.005</span>
-                    </div>
                 </div>
 
                 <div class="control-section">
@@ -107,6 +102,12 @@
                         <label for="rdBrushRadiusSlider" class="slider-label">Radius</label>
                         <input type="range" id="rdBrushRadiusSlider" class="slider" min="5" max="400" value="100" step="1">
                         <span id="rdBrushRadiusValue" class="slider-value">100</span>
+                    </div>
+
+                    <div class="slider-group">
+                        <label for="rdBrushFeatherSlider" class="slider-label">Edge</label>
+                        <input type="range" id="rdBrushFeatherSlider" class="slider" min="0" max="1" value="0.5" step="0.01">
+                        <span id="rdBrushFeatherValue" class="slider-value">0.50</span>
                     </div>
                 </div>
 
@@ -122,6 +123,15 @@
                     <div class="slider-group">
                         <label class="slider-label">Name</label>
                         <span id="rdStyleName" class="slider-value" style="min-width: auto; text-align: left;">Black &amp; White Sharp</span>
+                    </div>
+
+                    <!-- Threshold controls (only visible for B/W Sharp) -->
+                    <div id="rdThresholdControls" class="conditional-controls">
+                        <div class="slider-group">
+                            <label for="rdThresholdSlider" class="slider-label">Threshold</label>
+                            <input type="range" id="rdThresholdSlider" class="slider" min="0" max="1" value="0.07" step="0.01">
+                            <span id="rdThresholdValue" class="slider-value">0.07</span>
+                        </div>
                     </div>
                 </div>
 
@@ -192,6 +202,56 @@
                             <input type="range" id="rdStop5Slider" class="slider" min="0" max="1" value="0.8" step="0.01">
                             <span id="rdStop5Value" class="slider-value">0.80</span>
                         </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <div class="section-title">Seed pattern</div>
+
+                    <div class="slider-group">
+                        <label for="rdBiasXSlider" class="slider-label">Bias X</label>
+                        <input type="range" id="rdBiasXSlider" class="slider" min="-0.5" max="0.5" value="0" step="0.001">
+                        <span id="rdBiasXValue" class="slider-value">0.000</span>
+                    </div>
+
+                    <div class="slider-group">
+                        <label for="rdBiasYSlider" class="slider-label">Bias Y</label>
+                        <input type="range" id="rdBiasYSlider" class="slider" min="-0.5" max="0.5" value="0" step="0.001">
+                        <span id="rdBiasYValue" class="slider-value">0.000</span>
+                    </div>
+
+                    <div class="slider-group">
+                        <label for="rdWarmStartSlider" class="slider-label">Warm start</label>
+                        <input type="range" id="rdWarmStartSlider" class="slider" min="0" max="600" value="240" step="10">
+                        <span id="rdWarmStartValue" class="slider-value">240</span>
+                    </div>
+
+                    <div class="slider-group">
+                        <label for="rdSourceStrengthSlider" class="slider-label">Source strength</label>
+                        <input type="range" id="rdSourceStrengthSlider" class="slider" min="0" max="0.5" value="0.005" step="0.001">
+                        <input type="number" id="rdSourceStrengthNumber" class="number-input" min="0" max="0.5" value="0.005" step="0.001">
+                        <span id="rdSourceStrengthValue" class="slider-value">0.005</span>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <div class="section-title">Canvas size</div>
+
+                    <div class="slider-group">
+                        <label for="rdSimScaleSlider" class="slider-label">Sim scale</label>
+                        <input type="range" id="rdSimScaleSlider" class="slider" min="0.25" max="1" value="1" step="0.05">
+                        <span id="rdSimScaleValue" class="slider-value">1.00</span>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <div class="section-title">Actions</div>
+
+                    <div class="actions-row">
+                        <button id="rdReseedBtn" class="action-btn" type="button">Reseed</button>
+                        <button id="rdSaveJsonBtn" class="action-btn" type="button">Save JSON</button>
+                        <button id="rdLoadJsonBtn" class="action-btn" type="button">Load JSON</button>
+                        <input id="rdLoadJsonFile" type="file" accept="application/json" style="display:none">
                     </div>
                 </div>
 

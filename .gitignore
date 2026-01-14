@@ -1,3 +1,10 @@
 .DS_Store
 
 *.mov
+
+# Local backups / editor history artifacts
+backups/
+restore-local-history-report-*.json
+
+# Local project notes (not code)
+00_Project Note/
