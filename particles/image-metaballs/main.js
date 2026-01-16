@@ -231,6 +231,10 @@ class ImageMetaballSystem {
     // Setup event listeners
     this.canvas.addEventListener('mousemove', this.handleMouseMove);
     this.canvas.addEventListener('click', this.handleClick);
+    this.canvas.addEventListener('mouseleave', () => {
+      const indicator = document.getElementById('brushIndicator');
+      if (indicator) indicator.style.display = 'none';
+    });
     window.addEventListener('resize', this.handleResize);
   }
 
@@ -246,6 +250,18 @@ class ImageMetaballSystem {
   handleMouseMove(e) {
     this.mouseX = e.clientX;
     this.mouseY = e.clientY;
+    this.updateBrushIndicator();
+  }
+
+  updateBrushIndicator() {
+    const indicator = document.getElementById('brushIndicator');
+    if (!indicator) return;
+
+    indicator.style.left = this.mouseX + 'px';
+    indicator.style.top = this.mouseY + 'px';
+    indicator.style.width = (CONFIG.mouseRadius * 2) + 'px';
+    indicator.style.height = (CONFIG.mouseRadius * 2) + 'px';
+    indicator.style.display = 'block';
   }
 
   handleClick() {
@@ -740,6 +756,7 @@ class ImageMetaballSystem {
 
   setMouseRadius(value) {
     CONFIG.mouseRadius = parseFloat(value);
+    this.updateBrushIndicator();
   }
 
   setMouseStrength(value) {

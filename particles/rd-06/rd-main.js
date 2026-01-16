@@ -74,6 +74,8 @@ const RD = {
   biasX: 0.0,
   biasY: 0.0,
   sourceStrength: 0.005,
+  invertImage: false,
+  showOriginal: false,
 };
 
 const COLORS = {
@@ -96,6 +98,60 @@ const COLORS = {
   hslSaturation: 1.0,
   hslLuminosity: 0.5,
 };
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+function updateBrushIndicator(x, y) {
+  const indicator = document.getElementById('brushIndicator');
+  if (!indicator) return;
+
+  indicator.style.left = x + 'px';
+  indicator.style.top = y + 'px';
+  indicator.style.width = (RD.brushRadius * 2) + 'px';
+  indicator.style.height = (RD.brushRadius * 2) + 'px';
+  indicator.style.display = 'block';
+}
+
+function drawOriginalImage() {
+  const canvas = document.getElementById('canvas');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  const img = loadedImages[currentImageIndex];
+  if (!img || !img.complete) return;
+
+  // Clear canvas
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Calculate image dimensions to fit viewport (cover fit)
+  const imgAspect = img.naturalWidth / img.naturalHeight;
+  const canvasAspect = canvas.width / canvas.height;
+
+  let drawWidth, drawHeight, offsetX, offsetY;
+
+  if (canvasAspect > imgAspect) {
+    drawWidth = canvas.width;
+    drawHeight = drawWidth / imgAspect;
+    offsetX = 0;
+    offsetY = (canvas.height - drawHeight) / 2;
+  } else {
+    drawHeight = canvas.height;
+    drawWidth = drawHeight * imgAspect;
+    offsetX = (canvas.width - drawWidth) / 2;
+    offsetY = 0;
+  }
+
+  // Draw image
+  ctx.save();
+  if (RD.invertImage) {
+    ctx.filter = 'invert(1)';
+  }
+  ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+  ctx.restore();
+}
 
 // ============================================
 // SHADERS
@@ -530,7 +586,7 @@ function drawCoverImageToSeed(imageEl, width, height) {
   const dy = (height - drawH) / 2;
 
   seedCtx.save();
-  seedCtx.filter = 'grayscale(1)';
+  seedCtx.filter = RD.invertImage ? 'grayscale(1) invert(1)' : 'grayscale(1)';
   seedCtx.drawImage(imageEl, dx, dy, drawW, drawH);
   seedCtx.restore();
 }
@@ -838,6 +894,9 @@ function setupThree(canvas) {
 
     // Apply brush only on frames where the mouse actually moved.
     mouseMovedThisFrame = true;
+
+    // Update brush indicator
+    updateBrushIndicator(e.clientX, e.clientY);
   };
 
   const handlePointerLeave = () => {
@@ -847,6 +906,10 @@ function setupThree(canvas) {
       uniforms.display.mousePosition.value.set(-1, -1);
     }
     mouseMovedThisFrame = false;
+
+    // Hide brush indicator
+    const indicator = document.getElementById('brushIndicator');
+    if (indicator) indicator.style.display = 'none';
   };
 
   window.addEventListener('pointermove', handlePointerMove);
@@ -855,6 +918,13 @@ function setupThree(canvas) {
   let raf = 0;
   const animate = (time) => {
     frameCounter++;
+
+    // If showing original, skip simulation and just draw the image
+    if (RD.showOriginal) {
+      drawOriginalImage();
+      raf = requestAnimationFrame(animate);
+      return;
+    }
 
     // Prevent "wiping": only apply brush on mouse-move frames,
     // and only for a single simulation step.
@@ -1582,6 +1652,98 @@ function setupImageRolling() {
 
   if (prevBtn) prevBtn.addEventListener('click', () => changeImage(-1));
   if (nextBtn) nextBtn.addEventListener('click', () => changeImage(1));
+
+  // Toggle original image view
+  const toggleOriginalBtn = document.getElementById('toggleOriginalBtn');
+  if (toggleOriginalBtn) {
+    toggleOriginalBtn.addEventListener('click', () => {
+      RD.showOriginal = !RD.showOriginal;
+      toggleOriginalBtn.textContent = RD.showOriginal ? 'Show Effect' : 'Show Original';
+    });
+  }
+
+  // Invert image button
+  const invertImageBtn = document.getElementById('invertImageBtn');
+  if (invertImageBtn) {
+    invertImageBtn.addEventListener('click', () => {
+      RD.invertImage = !RD.invertImage;
+      invertImageBtn.textContent = RD.invertImage ? 'Revert Image' : 'Invert Image';
+      seedSimulationFromCurrentImage();
+    });
+  }
+
+  // Save default button
+  const saveDefaultBtn = document.getElementById('saveDefaultBtn');
+  if (saveDefaultBtn) {
+    saveDefaultBtn.addEventListener('click', () => {
+      const configCode = `// RD Configuration
+const RD = {
+  f: ${RD.f},
+  k: ${RD.k},
+  dA: ${RD.dA},
+  dB: ${RD.dB},
+  timestep: ${RD.timestep},
+  brushRadius: ${RD.brushRadius},
+  brushFeather: ${RD.brushFeather},
+  stepsPerFrame: ${RD.stepsPerFrame},
+  renderingStyle: ${RD.renderingStyle},
+  warmStartIterations: ${RD.warmStartIterations},
+  simScale: ${RD.simScale},
+  biasX: ${RD.biasX},
+  biasY: ${RD.biasY},
+  sourceStrength: ${RD.sourceStrength},
+  invertImage: ${RD.invertImage},
+  showOriginal: ${RD.showOriginal},
+};
+
+const COLORS = {
+  color1: '${COLORS.color1}', stop1: ${COLORS.stop1},
+  color2: '${COLORS.color2}', stop2: ${COLORS.stop2},
+  color3: '${COLORS.color3}', stop3: ${COLORS.stop3},
+  color4: '${COLORS.color4}', stop4: ${COLORS.stop4},
+  color5: '${COLORS.color5}', stop5: ${COLORS.stop5},
+  duoToneBlack: '${COLORS.duoToneBlack}',
+  duoToneWhite: '${COLORS.duoToneWhite}',
+  hslFromMin: ${COLORS.hslFromMin},
+  hslFromMax: ${COLORS.hslFromMax},
+  hslToMin: ${COLORS.hslToMin},
+  hslToMax: ${COLORS.hslToMax},
+  hslSaturation: ${COLORS.hslSaturation},
+  hslLuminosity: ${COLORS.hslLuminosity},
+};
+
+const TITLE = {
+  text: '${TITLE.text.replace(/'/g, "\\'")}',
+  enabled: ${TITLE.enabled},
+  sizePercent: ${TITLE.sizePercent},
+  fillColor: '${TITLE.fillColor}',
+  strokeColor: '${TITLE.strokeColor}',
+  strokeWidth: ${TITLE.strokeWidth},
+  shadowEnabled: ${TITLE.shadowEnabled},
+  shadowColor: '${TITLE.shadowColor}',
+  shadowBlur: ${TITLE.shadowBlur},
+  shadowOffsetX: ${TITLE.shadowOffsetX},
+  shadowOffsetY: ${TITLE.shadowOffsetY},
+};`;
+
+      console.log('='.repeat(60));
+      console.log('Copy current settings to rd-main.js:');
+      console.log('='.repeat(60));
+      console.log(configCode);
+      console.log('='.repeat(60));
+
+      // Copy to clipboard
+      navigator.clipboard.writeText(configCode).then(() => {
+        const originalText = saveDefaultBtn.textContent;
+        saveDefaultBtn.textContent = '✓ Copied!';
+        setTimeout(() => {
+          saveDefaultBtn.textContent = originalText;
+        }, 2000);
+      }).catch(() => {
+        alert('Check console to copy the settings code.');
+      });
+    });
+  }
 
   document.addEventListener('keydown', (e) => {
     if (!images.length) return;
