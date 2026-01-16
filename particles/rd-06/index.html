@@ -15,6 +15,9 @@
     <!-- Canvas for rendering effect -->
     <canvas id="canvas"></canvas>
 
+    <!-- Brush indicator -->
+    <div id="brushIndicator"></div>
+
     <!-- Effect Tabs (top-left) -->
     <div class="effects-tabs">
         <div class="effects-header">
@@ -35,6 +38,7 @@
         <button id="prevBtn">← Previous</button>
         <span id="imageName"></span>
         <button id="nextBtn">Next →</button>
+        <button id="toggleOriginalBtn">Show Original</button>
     </div>
 
     <!-- Parameter Controls (two sibling panels) -->
@@ -123,6 +127,10 @@
                     <div class="slider-group">
                         <label class="slider-label">Name</label>
                         <span id="rdStyleName" class="slider-value" style="min-width: auto; text-align: left;">Duo Tone Sharp</span>
+                    </div>
+
+                    <div class="toggle-group">
+                        <button id="invertImageBtn" class="invert-btn">Invert Image</button>
                     </div>
 
                     <!-- Threshold controls (only visible for B/W Sharp) -->
@@ -265,6 +273,8 @@
                         <button id="rdLoadJsonBtn" class="action-btn" type="button">Load JSON</button>
                         <input id="rdLoadJsonFile" type="file" accept="application/json" style="display:none">
                     </div>
+
+                    <button id="saveDefaultBtn" class="save-default-btn">Set as Default</button>
                 </div>
 
             </div>

@@ -1,5 +1,8 @@
 .DS_Store
 
+# Per-worktree local dev helper
+dev-server.sh
+
 *.mov
 
 # Local backups / editor history artifacts

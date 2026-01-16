@@ -10,6 +10,9 @@
     <!-- Canvas for rendering metaballs -->
     <canvas id="canvas"></canvas>
 
+    <!-- Brush indicator -->
+    <div id="brushIndicator"></div>
+
     <!-- Effect Tabs (top-left) -->
     <div class="effects-tabs">
         <div class="effects-header">
@@ -30,6 +33,7 @@
         <button id="prevBtn">← Previous</button>
         <span id="imageName"></span>
         <button id="nextBtn">Next →</button>
+        <button id="toggleOriginalBtn">Show Original</button>
     </div>
 
     <!-- Parameter Controls (two sibling panels) -->
@@ -150,6 +154,30 @@
                 </div>
             </div>
 
+            <!-- Color Settings -->
+            <div class="control-section">
+                <div class="section-title">Color</div>
+
+                <div class="slider-group">
+                    <label for="lineColorPicker" class="slider-label">Line Color</label>
+                    <input type="color" id="lineColorPicker" class="color-input" value="#ffffff">
+                </div>
+
+                <div class="slider-group">
+                    <label for="bgColorPicker" class="slider-label">BG Color</label>
+                    <input type="color" id="bgColorPicker" class="color-input" value="#000000">
+                </div>
+
+                <div class="toggle-group">
+                    <button id="invertImageBtn" class="invert-btn">Invert Image</button>
+                </div>
+            </div>
+
+            </div>
+
+            <!-- Save as Default Button -->
+            <div class="control-section">
+                <button id="saveDefaultBtn" class="save-default-btn">Set as Default</button>
             </div>
         </div>
 
