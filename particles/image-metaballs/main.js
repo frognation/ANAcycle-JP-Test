@@ -65,6 +65,11 @@ const CONFIG = {
 
   // Other
   transitionDuration: 1500,
+
+  // Colors
+  lineColor: '#ffffff',
+  backgroundColor: '#000000',
+  invertImage: false,
 };
 
 // ============================================
@@ -219,6 +224,8 @@ class ImageMetaballSystem {
     this.mouseX = -1000;
     this.mouseY = -1000;
 
+    this.showOriginal = false;
+
     // Resize canvas to fill viewport
     this.resizeCanvas();
 
@@ -346,6 +353,19 @@ class ImageMetaballSystem {
     offCanvas.width = drawWidth;
     offCanvas.height = drawHeight;
     offCtx.drawImage(img, 0, 0, drawWidth, drawHeight);
+
+    // Apply invert filter if enabled
+    if (CONFIG.invertImage) {
+      const imageData = offCtx.getImageData(0, 0, drawWidth, drawHeight);
+      const data = imageData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        data[i] = 255 - data[i];       // Red
+        data[i + 1] = 255 - data[i + 1]; // Green
+        data[i + 2] = 255 - data[i + 2]; // Blue
+        // Alpha stays the same
+      }
+      offCtx.putImageData(imageData, 0, 0);
+    }
 
     // Layer 2: composite title into the sampled source
     this.drawTitleOverlay(offCtx, offsetX, offsetY);
@@ -523,8 +543,15 @@ class ImageMetaballSystem {
     this.threshold = baseThreshold + noiseValue * thresholdRange;
 
     // Clear canvas
-    this.ctx.fillStyle = '#000';
+    this.ctx.fillStyle = CONFIG.backgroundColor;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // If showing original, just draw the image and return
+    if (this.showOriginal) {
+      this.drawOriginalImage();
+      requestAnimationFrame(this.animate);
+      return;
+    }
 
     let activeField, activeColors;
 
@@ -645,8 +672,11 @@ class ImageMetaballSystem {
           b: Math.round((colors[idx00].b + colors[idx10].b + colors[idx01].b + colors[idx11].b) / 4),
         };
 
-        // Draw lines
-        this.ctx.strokeStyle = `rgb(${cellColor.r}, ${cellColor.g}, ${cellColor.b})`;
+        // Draw lines with configured color or original cell color
+        const strokeColor = CONFIG.lineColor === '#ffffff'
+          ? `rgb(${cellColor.r}, ${cellColor.g}, ${cellColor.b})`
+          : CONFIG.lineColor;
+        this.ctx.strokeStyle = strokeColor;
         this.ctx.lineWidth = CONFIG.lineWidth;
         this.ctx.lineCap = 'round';
 
@@ -822,6 +852,52 @@ class ImageMetaballSystem {
     TITLE.shadowOffsetY = parseFloat(value);
     this.regenerateFields();
   }
+
+  drawOriginalImage() {
+    const img = this.images[this.currentImageIndex];
+    if (!img || !img.complete) return;
+
+    // Calculate image dimensions to fit viewport (same as scalar field generation)
+    const imgAspect = img.naturalWidth / img.naturalHeight;
+    const viewportAspect = this.canvas.width / this.canvas.height;
+
+    let drawWidth, drawHeight, offsetX, offsetY;
+
+    // Cover fit - fill viewport
+    if (viewportAspect > imgAspect) {
+      drawWidth = this.canvas.width;
+      drawHeight = drawWidth / imgAspect;
+      offsetX = 0;
+      offsetY = (this.canvas.height - drawHeight) / 2;
+    } else {
+      drawHeight = this.canvas.height;
+      drawWidth = drawHeight * imgAspect;
+      offsetX = (this.canvas.width - drawWidth) / 2;
+      offsetY = 0;
+    }
+
+    // Draw image
+    this.ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+  }
+
+  toggleOriginalView() {
+    this.showOriginal = !this.showOriginal;
+    return this.showOriginal;
+  }
+
+  setLineColor(value) {
+    CONFIG.lineColor = String(value);
+  }
+
+  setBackgroundColor(value) {
+    CONFIG.backgroundColor = String(value);
+  }
+
+  toggleInvertImage() {
+    CONFIG.invertImage = !CONFIG.invertImage;
+    this.regenerateFields();
+    return CONFIG.invertImage;
+  }
 }
 
 // ============================================
@@ -859,6 +935,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('nextBtn').addEventListener('click', () => {
       metaballSystem.nextImage();
+    });
+
+    // Toggle original image view
+    const toggleOriginalBtn = document.getElementById('toggleOriginalBtn');
+    toggleOriginalBtn.addEventListener('click', () => {
+      const isShowingOriginal = metaballSystem.toggleOriginalView();
+      toggleOriginalBtn.textContent = isShowingOriginal ? 'Show Effect' : 'Show Original';
     });
 
     // Keyboard controls
@@ -1022,6 +1105,96 @@ document.addEventListener('DOMContentLoaded', () => {
 
     titleShadowColor.addEventListener('input', (e) => {
       metaballSystem.setTitleShadowColor(e.target.value);
+    });
+
+    // Color controls
+    const lineColorPicker = document.getElementById('lineColorPicker');
+    const bgColorPicker = document.getElementById('bgColorPicker');
+    const invertImageBtn = document.getElementById('invertImageBtn');
+
+    lineColorPicker.value = CONFIG.lineColor;
+    bgColorPicker.value = CONFIG.backgroundColor;
+
+    lineColorPicker.addEventListener('input', (e) => {
+      metaballSystem.setLineColor(e.target.value);
+    });
+
+    bgColorPicker.addEventListener('input', (e) => {
+      metaballSystem.setBackgroundColor(e.target.value);
+    });
+
+    invertImageBtn.addEventListener('click', () => {
+      const isInverted = metaballSystem.toggleInvertImage();
+      invertImageBtn.textContent = isInverted ? 'Revert Image' : 'Invert Image';
+    });
+
+    // Save Default Button
+    const saveDefaultBtn = document.getElementById('saveDefaultBtn');
+    saveDefaultBtn.addEventListener('click', () => {
+      const configCode = `// Metaball system configuration
+const CONFIG = {
+  // Detail & Rendering
+  gridResolution: ${CONFIG.gridResolution},
+  influenceRadius: ${CONFIG.influenceRadius},
+  falloffPower: ${CONFIG.falloffPower},
+  lineWidth: ${CONFIG.lineWidth},
+
+  // Animation Speed
+  thresholdSpeed: ${CONFIG.thresholdSpeed},
+  noiseSpeed: ${CONFIG.noiseSpeed},
+
+  // Threshold Range
+  thresholdMin: ${CONFIG.thresholdMin},
+  thresholdMax: ${CONFIG.thresholdMax},
+
+  // Noise Settings
+  noiseScale: ${CONFIG.noiseScale},
+  noiseStrength: ${CONFIG.noiseStrength},
+
+  // Mouse Interaction
+  mouseRadius: ${CONFIG.mouseRadius},
+  mouseStrength: ${CONFIG.mouseStrength},
+
+  // Other
+  transitionDuration: ${CONFIG.transitionDuration},
+
+  // Colors
+  lineColor: '${CONFIG.lineColor}',
+  backgroundColor: '${CONFIG.backgroundColor}',
+  invertImage: ${CONFIG.invertImage},
+};
+
+// Title settings
+const TITLE = {
+  text: '${TITLE.text.replace(/'/g, "\\'")}',
+  enabled: ${TITLE.enabled},
+  sizePercent: ${TITLE.sizePercent},
+  fillColor: '${TITLE.fillColor}',
+  strokeColor: '${TITLE.strokeColor}',
+  strokeWidth: ${TITLE.strokeWidth},
+  shadowEnabled: ${TITLE.shadowEnabled},
+  shadowColor: '${TITLE.shadowColor}',
+  shadowBlur: ${TITLE.shadowBlur},
+  shadowOffsetX: ${TITLE.shadowOffsetX},
+  shadowOffsetY: ${TITLE.shadowOffsetY},
+};`;
+
+      console.log('='.repeat(60));
+      console.log('Copy current settings to main.js CONFIG and TITLE objects:');
+      console.log('='.repeat(60));
+      console.log(configCode);
+      console.log('='.repeat(60));
+
+      // Copy to clipboard
+      navigator.clipboard.writeText(configCode).then(() => {
+        const originalText = saveDefaultBtn.textContent;
+        saveDefaultBtn.textContent = '✓ Copied!';
+        setTimeout(() => {
+          saveDefaultBtn.textContent = originalText;
+        }, 2000);
+      }).catch(() => {
+        alert('Check console to copy the settings code.');
+      });
     });
   });
 });
